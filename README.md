@@ -29,6 +29,6 @@ python3 app.py
 
 ## Plans for the next revision
 
-* Make the code more resilient to errors.
 * Incorporate a Waveshare E-Ink dashboard, not only to show readings but also as a dashboard for other stuff.
 * Rewrite this in Rust/Go for more power efficiency.
+

@@ -47,22 +47,26 @@ def main(led_on):
     try:
         while True:
             oled.clear()
-            bme_sample = sample()
-            z19_sample = mh_z19.read()
-            co2 = 0 if 'co2' not in z19_sample else z19_sample['co2']
-            l1 = "CO2: {}ppm".format(co2)
-            l2 = "ps: {}hPa".format(int(bme_sample.pressure))
-            l3 = "T/H: {:.1f}°C {:.1f}%".format(bme_sample.temperature, bme_sample.humidity)
-            print("\n".join([l1, l2, l3]))
-            if led_on:
-                oled.text(l1, 1)
-                oled.text(l2, 2)
-                oled.text(l3, 3)
-                oled.show()
-            if cycle == 0:
-                insert_record(conn, c, co2, bme_sample.temperature, bme_sample.humidity, int(bme_sample.pressure))
-            cycle = (cycle + 1) % READINGS_BEFORE_LOGGING
-            sleep(30)
+            try:
+                bme_sample = sample()
+                z19_sample = mh_z19.read()
+                co2 = 0 if 'co2' not in z19_sample else z19_sample['co2']
+                l1 = "CO2: {}ppm".format(co2)
+                l2 = "ps: {}hPa".format(int(bme_sample.pressure))
+                l3 = "T/H: {:.1f}°C {:.1f}%".format(bme_sample.temperature, bme_sample.humidity)
+                print("\n".join([l1, l2, l3]))
+                if led_on:
+                    oled.text(l1, 1)
+                    oled.text(l2, 2)
+                    oled.text(l3, 3)
+                    oled.show()
+                if cycle == 0:
+                    insert_record(conn, c, co2, bme_sample.temperature, bme_sample.humidity, int(bme_sample.pressure))
+                cycle = (cycle + 1) % READINGS_BEFORE_LOGGING
+                sleep(30)
+            except OSError as e:
+                print("Error reading from BME280!")
+                sleep(30)
     finally:
         c.close()
         conn.close()
