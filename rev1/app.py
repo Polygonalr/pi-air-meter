@@ -1,7 +1,5 @@
-import adafruit_ssd1306
 import board
 import busio
-from PIL import Image, ImageDraw, ImageFont
 from bme import sample
 import mh_z19
 from time import sleep
@@ -14,7 +12,6 @@ READINGS_BEFORE_LOGGING = 4
 
 i2c = busio.I2C(board.SCL, board.SDA)
 oled = OledText(i2c, 128,32)
-font = ImageFont.load_default()
 
 def init_database():
     db_file = 'data.sqlite3'
@@ -44,29 +41,40 @@ def main(led_on):
     cycle = 0
     oled.auto_show = False
     oled.layout = Layout32.layout_3small()
+    oled.clear()
     try:
         while True:
-            oled.clear()
+            if led_on:
+                oled.clear()
+            z19_sample = mh_z19.read()
+            co2 = 0 if 'co2' not in z19_sample else z19_sample['co2']
+            l1 = "CO2: {}ppm".format(co2)
+            print(l1)
+            if led_on:
+                oled.text(l1, 1)
+
             try:
                 bme_sample = sample()
-                z19_sample = mh_z19.read()
-                co2 = 0 if 'co2' not in z19_sample else z19_sample['co2']
-                l1 = "CO2: {}ppm".format(co2)
-                l2 = "ps: {}hPa".format(int(bme_sample.pressure))
-                l3 = "T/H: {:.1f}°C {:.1f}%".format(bme_sample.temperature, bme_sample.humidity)
-                print("\n".join([l1, l2, l3]))
-                if led_on:
-                    oled.text(l1, 1)
-                    oled.text(l2, 2)
-                    oled.text(l3, 3)
-                    oled.show()
-                if cycle == 0:
-                    insert_record(conn, c, co2, bme_sample.temperature, bme_sample.humidity, int(bme_sample.pressure))
-                cycle = (cycle + 1) % READINGS_BEFORE_LOGGING
-                sleep(30)
+                pres, temp, hum = bme_sample.pressure, bme_sample.temperature, bme_sample.humidity
             except OSError as e:
-                print("Error reading from BME280!")
-                sleep(30)
+                pres, temp, hum = 0.0, 0.0, 0.0
+                print("Unable to obtain reading from BME280")
+
+            l2 = "ps: {}hPa".format(int(pres))
+            l3 = "T/H: {:.1f}°C {:.1f}%".format(temp, hum)
+            print("\n".join([l1, l2, l3]))
+            if led_on:
+                oled.text(l2, 2)
+                oled.text(l3, 3)
+                try:
+                    oled.show()
+                except OSError:
+                    print("Unable to push information to the OLED screen")
+
+            if cycle == 0:
+                insert_record(conn, c, co2, temp, hum, int(pres))
+            cycle = (cycle + 1) % READINGS_BEFORE_LOGGING
+            sleep(30)
     finally:
         c.close()
         conn.close()
