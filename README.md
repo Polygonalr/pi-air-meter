@@ -21,6 +21,11 @@ Install the required pip packages with the following command.
 python3 -m pip install -r requirements.txt
 ```
 
+Enable your Raspberry Pi's I2C and Serial inputs with ```sudo raspi-config```.
+
+- `Interface Options` > `I5 I2C` > `Yes`
+- `Interface Options` > `I6 Serial Port` > `No` > `Yes`
+
 To run the app, simply execute `app.py`.
 
 ```bash
