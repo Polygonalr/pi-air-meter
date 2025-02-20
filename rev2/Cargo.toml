@@ -8,4 +8,5 @@ edition = "2021"
 [dependencies]
 mh-z19 = "0.3.3"
 rppal = { version = "0.14.1", features = ["hal"] }
+sqlite = "0.32.0"
 waveshare-rpi = { git = "https://github.com/Polygonalr/waveshare-rpi.git", version = "0.1.0" }
